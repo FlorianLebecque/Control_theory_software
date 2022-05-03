@@ -27,11 +27,28 @@ def LeadLag_RT(MV,Kp,T_lead,T_lag,Ts,PV,PVInit=0,method='EBD'):
             PV.append(PVInit)
         else: # MV[k+1] is MV[-1] and MV[k] is MV[-2]
             if method == 'EBD':
-                value = (1 / 1 + K) * PV[-1] + (((Kp * K)/(1 + K)) * (((1 + (T_lead / Ts)) * MV[-1]) - ((T_lead / Ts) * MV[-2])))
+
+                TLeadDivTs = T_lead / Ts
+                OneDivOnePlusK = (1 / (1+K))
+                mult_part = ((Kp*K)/(1+K))
+                one_plus_tleadDivTs = 1 + TLeadDivTs
+
+                value = (OneDivOnePlusK * PV[-1]) + ( mult_part * ( (one_plus_tleadDivTs * MV[-1]) - (TLeadDivTs * MV[-2] )) )
+
             elif method == 'EFD':
-                value = ((1-K) * PV[-1]) + ((Kp * K) * ( (T_lead/Ts) * MV[-1] ) + ((1 - (T_lead / Ts)) * MV[-2]) )
+                OneMinusK = 1-K
+                KTimesKp = K*Kp
+                TLeadDivTs = T_lead / Ts
+                one_minus_tleadDivTs = 1 - TLeadDivTs
+
+                value = (OneMinusK * PV[-1]) + ( KTimesKp * ( (TLeadDivTs * MV[-1]) + (one_minus_tleadDivTs * MV[-2]) ) )
             else:
-                value = (1 / 1 + K) * PV[-1] + (((Kp * K)/(1 + K)) * (((1 + (T_lead / Ts)) * MV[-1]) - ((T_lead / Ts) * MV[-2])))
+                TLeadDivTs = T_lead / Ts
+                OneDivOnePlusK = (1 / (1+K))
+                mult_part = ((Kp*K)/(1+K))
+                one_plus_tleadDivTs = 1 + TLeadDivTs
+
+                value = (OneDivOnePlusK * PV[-1]) + ( mult_part * ( (one_plus_tleadDivTs * MV[-1]) - (TLeadDivTs * MV[-2] )) )
 
             PV.append(value)
             
