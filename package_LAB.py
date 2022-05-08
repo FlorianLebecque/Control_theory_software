@@ -39,40 +39,44 @@ The function "PID_RT" appends new values to the vectors "MV", "MVP", "MVI", and 
     else : 
         E.append(SP[-1] - PV[-1])
     
+    
     methodI, methodD =  method.split('-')
     
     
+    ''' Initialisation de MVI'''
     if len(MVI) == 0 : 
         MVI.append((Kc*Ts/Ti)*E[-1])
     else : 
         if methodI == 'TRAP':
-            MVI.append(MVI[-1] + (0.5*Kc*Ts/Ti)*(E[-1]+E))
+            MVI.append(MVI[-1] + (0.5*Kc*Ts/Ti)*(E[-1]+E[-2]))
         else : 
             MVI.append(MVI[-1] + (Kc*Ts/Ti)*E[-1])
             
-    '''Initialisation de MVD : à 0 directement, voir slide 193  '''
-    Tfd = alpha*Td
-    if len(MVD) == 0 : 
-        MVD.append(0)
-    else : 
-        if methodD == 'EBD':
-            MVD.append( ((Tfd)/(Tfd + Ts))*MVD[-1] + ((Kc*Td)/(Tfd+Ts))*E[-1] - E[-2])
+    '''Initialisation de MVD : voir slide 193  '''
+    Tfd = alpha * Td
+    if Td > 0:
+        if len(MVD) !=0:
+            if len(E) == 1:
+                MVD.append((Tfd / (Tfd + Ts)) * MVD[-1] + ((Kc * Td) / (Tfd + Ts)) * (E[-1]))
+            else:
+                MVD.append((Tfd / (Tfd + Ts)) * MVD[-1] + ((Kc * Td) / (Tfd + Ts)) * (E[-1] - E[-2]))
+        else:
+            if len(E) == 1:
+                MVD.append((Kc * Td) / (Tfd + Ts) * (E[-1]))
+            else:
+                MVD.append((Kc * Td) / (Tfd + Ts) * (E[-1] - E[-2]))
         
-    '''Initialisation de MVP'''
+    '''Actualisation de MVP'''
     MVP.append(E[-1] * Kc)
-    
-    
-    
 
 
-
-    '''Mode manuel et anti wind-up'''
+    '''Mode manuel et anti-wind-up'''
     if ManFF:
         MVFFI = MVFF[-1]
     else:
         MVFFI = 0
         
-    if bool(Man[-1]) == True:
+    if Man[-1]:
         if ManFF:
             MVI[-1] = MVMan[-1] - MVP[-1] - MVD[-1]
         else:
