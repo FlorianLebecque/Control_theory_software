@@ -1,3 +1,4 @@
+import math
 def PID_RT(SP, PV, Man, MVMan, MVFF, Kc, Ti, Td, alpha, Ts, MVMin, MVMax, MV, MVP, MVI, MVD, E, ManFF=False, PVInit = 0, method = 'EBD-EBD') : 
     '''
 The function "PID_RT" needs to be included in a "for or while loop". 
@@ -131,3 +132,63 @@ def LeadLag_RT(MV,Kp,T_lead,T_lag,Ts,PV,PVInit=0,method='EBD'):
                 PV.append((1/(1+K)) * PV[-1] + ((K*Kp)/(1+K)) * ((1+(T_lead/Ts)) * MV[-1] - (T_lead/Ts) * MV[-2]))
     else:
         PV.append(Kp*MV[-1])
+
+def IMCTuning(Kp, Tlag1, Tlag2=0, theta=0, gamma=0, process="FOPDT", model="classic", Tg=0, Tu=0, a=0, t1=0, t2=0):
+    """
+    The function "imc_tuning" is only for first and second order systems.
+    :Kp: process gain
+    :Tlag1: first (or main) lag time constant [s] used in your process
+    :Tlag2: second lag time constant [s] used in your process
+    :theta: delay [s] used in your process
+    :gamma : constant used to get the closed loop time constant
+    :process: process order (ex : FOPDT first order system wuth delay)
+    :model: broida_simple or broida_complex for FOPDT, vdG for SOPDT, classic if no value given
+    :Tg:
+    :Tu:
+    :a:
+    :t1:
+    :t2:
+    :return: imc tuning parameters respectively: 
+        - Kc: controller gain
+        - Ti: reset time 
+        - Td: derivative time       
+    The function "imc_tuning" returns the parameteres that you will use in your PID depending on your process parameters
+    """
+    Tc = gamma * Tlag1
+
+    if (process == "FOPDT"):
+        if (model == "broida_simple"):
+            Tlag1 = Tg
+            theta = Tu
+        elif (model == "broida_complex"):
+            Tlag1 = 5.5*(t2 - t1)
+            theta = (2.8*t1) - (1.8*t2)
+
+        Kc = ((Tlag1 + theta/2) / (Tc + theta/2)) / Kp
+        Ti = Tlag1 + theta/2
+        Td = (Tlag1*theta) / (2*Tlag1 + theta)
+
+    elif (process == "SOPDT"):
+        if (model == "vdG"):
+            Tlag1 = Tg * ((3*a*math.exp(1) - 1) / (1 + a*math.exp(1)))
+            Tlag2 = Tg * ((1 - a*math.exp(1)) / (1 + a*math.exp(1)))
+            theta = Tu - ((Tlag1*Tlag2) / (Tlag1 + 3*Tlag2))
+
+        Kc = ((Tlag1 + Tlag2) / (Tc + theta)) / Kp
+        Ti = Tlag1 + Tlag2
+        Td = (Tlag1*Tlag2) / (Tlag1 + Tlag2)
+
+#     else :
+#         an = Tu / Tg
+#         table = [ [0.0, 1.0],  [0.10, 2.72], [0.22, 3.69],[0.32, 4.46],[0.41, 5.12],[0.49, 5.70],[0.57, 6.23] ]
+
+#         for i in range(len(table)):
+#             if ( table[i][0] <= an < table[i+1][0]):
+#                 n = i + 1
+#                 bn = table[i][1]
+
+#         Tlag1 = Tg / bn
+#         Tuth = an * Tg
+#         theta = Tu - Tuth
+
+    return Kc, Ti, Td
