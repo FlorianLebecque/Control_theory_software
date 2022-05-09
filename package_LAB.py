@@ -71,11 +71,14 @@ The function "PID_RT" appends new values to the vectors "MV", "MVP", "MVI", and 
     MVP.append(E[-1] * Kc)
 
 
-    '''Mode manuel et anti-wind-up'''
+    
+    '''Activation Feedforward'''
     if ManFF:
         MVFFI = MVFF[-1]
     else:
         MVFFI = 0
+    '''Mode manuel et anti-wind-up'''
+    
         
     if Man[-1]:
         if ManFF:
